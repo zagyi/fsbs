@@ -1,0 +1,12 @@
+_*
+
+.idea/
+.vscode/
+
+# SBT
+target/
+
+# Metals
+.metals/
+.bloop/
+metals.sbt
