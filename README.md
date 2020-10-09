@@ -10,8 +10,8 @@ zio
 
 ##### Persistence
 * quill
-* doobie
-* ? zio-sql
+* flyway
+* postgres
 
 ##### Other
 * zio-config

@@ -22,5 +22,3 @@ ThisBuild / watchStartMessage := {
           |Monitoring source files for ${prompt(projectName)}...""".stripMargin
     }
 }
-
-// ThisBuild / useCoursier := false

@@ -1,75 +1,91 @@
 import sbt._
 
 object Versions {
-  val circe          = "0.13.0"
-  val doobie         = "0.9.2"
-  val h2database     = "1.4.200"
-  val http4s         = "0.21.7"
-  val kindProjector  = "0.11.0"
-  val logback        = "1.2.3"
-  val quill          = "3.5.3"
-  val tapir          = "0.16.16"
-  val zio            = "1.0.1"
-  val zioInteropCats = "2.1.4.0"
+  var circe          = "0.13.0"
+  var h2database     = "1.4.200"
+  var http4s         = "0.21.7"
+  var kindProjector  = "0.11.0"
+  var logback        = "1.2.3"
+  var quill          = "3.5.3"
+  var tapir          = "0.16.16"
+  var zio            = "1.0.1"
+  var zioConfig      = "1.0.0-RC27"
+  var zioInteropCats = "2.1.4.0"
+  var zioLogging     = "0.5.2"
+
 }
 
 object Dependencies {
 
-  object circe {
-    val generic = circe("generic")
+  implicit class ModuleIDOps(private val self: ModuleID) extends AnyVal {
+    import self._
 
-    private def circe(module: String) =
-      "io.circe" %% s"circe-$module" % Versions.circe
+    def <<(artifactSuffix: String) =
+      withName(name + "-" + artifactSuffix)
+
+    def @@(version: String) = withRevision(version)
   }
 
-  object doobie {
-    val core = doobie("core")
-    val h2   = doobie("h2")
+  val V = Versions
 
-    private def doobie(module: String) =
-      "org.tpolecat" %% s"doobie-$module" % Versions.doobie
+  object circe {
+    private[Dependencies] val circe =
+      "io.circe" %% "circe" % V.circe
+
+    val generic = circe << "generic"
   }
 
   object http4s {
-    val core = http4s("core")
+    private[Dependencies] val http4s =
+      "org.http4s" %% "http4s" % V.http4s
 
-    private def http4s(module: String) =
-      "org.http4s" %% s"http4s-$module" % Versions.http4s
+    val core = http4s << "core"
   }
 
   val kindProjector =
-    "org.typelevel" %% "kind-projector" % Versions.kindProjector cross CrossVersion.full
+    "org.typelevel" %% "kind-projector" % V.kindProjector cross CrossVersion.full
 
   object quill {
-    val jdbc = quill("jdbc")
+    private[Dependencies] val quill = "io.getquill" %% "quill" % V.quill
 
-    private def quill(module: String) =
-      "io.getquill" %% s"quill-$module" % Versions.quill
+    val jdbc = quill << "jdbc"
   }
 
   object tapir {
-    val core               = tapir("core")
-    val http4s_server      = tapir("http4s-server")
-    val json_circe         = tapir("json-circe")
-    val openapi_docs       = tapir("openapi-docs")
-    val openapi_circe_yaml = tapir("openapi-circe-yaml")
-    val swagger_ui_http4s  = tapir("swagger-ui-http4s")
-    val zio                = tapir("zio")
-    val zio_http4s_server  = tapir("zio-http4s-server")
+    private[Dependencies] val tapir =
+      "com.softwaremill.sttp.tapir" %% "tapir" % V.tapir
 
-    private def tapir(module: String) =
-      "com.softwaremill.sttp.tapir" %% s"tapir-$module" % Versions.tapir
+    val core               = tapir << "core"
+    val http4s_server      = tapir << "http4s-server"
+    val json_circe         = tapir << "json-circe"
+    val openapi_docs       = tapir << "openapi-docs"
+    val openapi_circe_yaml = tapir << "openapi-circe-yaml"
+    val swagger_ui_http4s  = tapir << "swagger-ui-http4s"
+    val zio                = tapir << "zio"
+    val zio_http4s_server  = tapir << "zio-http4s-server"
   }
 
   object zio {
-    val zio          = zio0("")
-    val test         = zio0("test")
-    val interop_cats = zio0("interop-cats", Versions.zioInteropCats)
+    private[Dependencies] val zio = "dev.zio" %% "zio" % V.zio
 
-    private def zio0(module: String, version: String = Versions.zio) =
-      "dev.zio" %% m("zio", module) % version
+    val interop_cats = (zio << "interop-cats") @@ V.zioInteropCats
+    val test         = zio << "test"
+
+    object config {
+      private[Dependencies] val zioConfig = (zio << "config") @@ V.zioConfig
+
+      val magnolia = zioConfig << "magnolia"
+      val refined  = zioConfig << "refined"
+      val typesafe = zioConfig << "typesafe"
+    }
+
+    object logging {
+      private[Dependencies] val zioLogging = (zio << "logging") @@ V.zioLogging
+
+      val slf4j = zioLogging << "slf4j"
+    }
   }
 
-  private def m(stem: String, module: String) =
-    stem + (if (module.isEmpty) "" else "-") + module
+  implicit def zioModuleID(m: zio.type): ModuleID              = m.zio
+  implicit def zioConfigModuleID(m: zio.config.type): ModuleID = m.zioConfig
 }
